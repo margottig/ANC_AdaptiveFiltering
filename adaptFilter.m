@@ -53,6 +53,10 @@ function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = ad
         % Apply the RLS filter
         [y, ~, ~] = getRLS(recorded_audio,noisy_signal, lamda, filter_order);
         cleaned_signal = y;
+       elseif strcmp(filter_type, 'FxLMS')
+        % Apply the RLS filter
+        [y, ~] = getFXLMS(recorded_audio, noisy_signal);
+        cleaned_signal = y;
     else
         error('Unknown filter type. Choose either ''LMS'' or ''RLS''.');
     end
