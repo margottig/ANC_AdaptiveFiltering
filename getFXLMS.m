@@ -1,11 +1,14 @@
-% ------------------------------------------------------------------------
+%% getFXLMS.m - Implements the Filtered-X Least Mean Squares (FXLMS) algorithm
+%
+% Authors: Marcelo Argotti Gomez, Juliette Naumann
+% Date: July 4, 2024
+%
 % Example taken from: https://www.mathworks.com/help/dsp
 %
-% Usage: [y, e] = getFXLMS(x, n)
+% using MATLAB's dsp.FilteredXLMSFilter System object.
+% Commonly used for adaptive noise cancellation.
 %
-% This function implements the Filtered-X Least Mean Squares (FXLMS) algorithm
-% using MATLAB's dsp.FilteredXLMSFilter System object. It is commonly used for
-% adaptive noise cancellation.
+% Usage: [y, e] = getFXLMS(x, n)
 %
 % Inputs:
 % x  - the vector of input signal, recorded signal of size Ns
