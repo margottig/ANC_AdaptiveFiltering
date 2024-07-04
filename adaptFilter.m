@@ -1,17 +1,39 @@
-%% Adaptive Filtering
-function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = adaptFilter
-    
-    %% Record Signal
-    % Call RecorderFunction
-    [recorded_audio, fs] = recorder;
+%% adaptFilter
+% Function to apply adaptive filtering to a recorded audio signal.
+% Generates a noisy signal, cleans it using LMS adaptive filtering, and amplifies the cleaned signal.
+% Plots the original, noisy, cleaned, and amplified signals.
+%
+% Inputs:
+% - recorded_audio: The recorded audio signal.
+% - fs: The sampling frequency of the recorded audio.
+% - fig: The GUI figure handle to display messages.
+%
+% Outputs:
+% - recorded_audio: The recorded audio signal (unchanged).
+% - noisy_signal: The generated noisy signal.
+% - cleaned_signal: The cleaned signal after filtering.
+% - amplifiedAudio: The amplified cleaned signal.
+% - fs: The sampling frequency of the signals.
+%
+% Usage:
+% [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = adaptFilter(recorded_audio, fs, fig);
+%
+% Authors: Marcelo Argotti Gomez, Juliette Naumann
+% Date: July 4, 2024
+
+%% Adaptive Filter
+function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = adaptFilter(recorded_audio, fs, fig)
+    % Access the label handle from the figure's UserData
+    lbl = fig.UserData.lbl;
+
+    %% Display message in GUI
+    lbl.Text = 'Turn your sound on!'; 
+    pause(2);  % Pause to let the message be visible
+    lbl.Text = '';  % Clear the message
     
     %% Generate a noisy signal by adding white Gaussian noise 
-    noise_power = 0.7; % Adjust the noise power as needed 
+    noise_power = 0.15; % Adjust the noise power as needed 
     noise = noise_power * randn(size(recorded_audio)); 
-    [noiseHall,fs]=audioread("Noise Orang.wav");
-    noiseHall_resize = imresize(noiseHall, [size(recorded_audio, 1), size(recorded_audio, 2)]);
-
-    %noisy_signal = recorded_audio + noiseHall_resize; 
     noisy_signal = recorded_audio + noise; 
     
     %% LMS filter parameters 
@@ -35,12 +57,10 @@ function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = ad
     %% Amplify 
     amplifiedAudio = 1.2 * cleaned_signal_cut;  % Amplify by a factor of 1.2 
 
+    %% Save the amplified cleaned signal to a file
+    audiowrite('FilteredSignal.wav', amplifiedAudio, fs);
     
     %% Plot
-    disp('Turn your sound on!'); 
-    disp('Analysis of original and processed signal will be shown.'); 
-    pause(length(recorded_audio)/fs); 
-    
     figure; 
     subplot(4, 1, 1); 
     plot(time, recorded_audio); 
@@ -69,6 +89,4 @@ function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = ad
     xlabel('Time (s)'); 
     ylabel('Amplitude'); 
     grid on; 
-
-
 end
