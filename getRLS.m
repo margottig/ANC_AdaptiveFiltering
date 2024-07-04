@@ -1,4 +1,7 @@
-% getRLS.m - least mean squares algorithm using dsp.RLSFilter
+%% getRLS.m - least mean squares algorithm using dsp.RLSFilter
+%
+% Authors: Marcelo Argotti Gomez, Juliette Naumann
+% Date: July 4, 2024
 %
 % Usage: [e, y, w] = getRLS(d, x, lamda, M)
 %
@@ -12,8 +15,9 @@
 % e - the output error vector of size Ns
 % y - output coefficients
 % w - filter parameters
-%
+
 % ------------------------------------------------------------------------
+%% RLS Filter
 function [e, y, w] = getRLS(d, x, lamda, M)
 
     Ns = length(d);
@@ -26,15 +30,8 @@ function [e, y, w] = getRLS(d, x, lamda, M)
     
     % Create the dsp.RLSFilter object
     rls = dsp.RLSFilter('Length', M, 'ForgettingFactor', lamda);
-    
-    % Preallocate output arrays
-    y = zeros(Ns, 1);
-    e = zeros(Ns, 1);
-    w = zeros(M, Ns);
-    
+        
     % Process the signals using the RLS filter
-    for n = 1:Ns
-        [y(n), e(n)] = rls(x(n), d(n));
-        w(:, n) = rls.Coefficients;
-    end
+        [y, e] = rls(x, d);
+        w = rls.Coefficients;
 end
