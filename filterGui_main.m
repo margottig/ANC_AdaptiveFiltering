@@ -1,16 +1,5 @@
-%% filterGui_main
-% Main script for creating and displaying the GUI for the adaptive filter project.
-% Handles user interactions through buttons to record and play various signals.
-%
-% Usage:
-% 1. Run the script to open the GUI.
-% 2. Use the "Record" button to start recording a signal.
-% 3. Use the "Play Original", "Play Noisy", and "Play Amplified" buttons to play the respective signals.
-% 
-% Authors: Marcelo Argotti Gomez, Juliette Naumann
-% Date: July 4, 2024
+%% Main file for opening the GUI of the adaptive filter file, which calls the recorder.m
 
-%%
 % Main function to create and display the GUI
 function filterGui()
     % Create the main figure for the GUI
@@ -18,8 +7,20 @@ function filterGui()
     
     % Create RECORD SIGNAL button and set its callback function
     btnRecord = uibutton(fig, 'push', 'Text', 'Record', ...
-                         'Position', [50, 140, 100, 50], ...
+                         'Position', [50, 200, 100, 50], ...
                          'ButtonPushedFcn', @(btn, event) recordButtonPushed(btn, fig));
+    
+    % Create FILTER TYPE dropdown
+    ddFilterType = uidropdown(fig, ...
+                              'Position', [50, 140, 100, 50], ...
+                              'Items', {'LMS', 'RLS'}, ...
+                              'Value', 'LMS', ...
+                              'ValueChangedFcn', @(dd, event) filterTypeChanged(dd, fig));
+    
+    % Create PROCESS SIGNAL button and set its callback function
+    btnProcess = uibutton(fig, 'push', 'Text', 'Process', ...
+                          'Position', [50, 80, 100, 50], ...
+                          'ButtonPushedFcn', @(btn, event) processButtonPushed(btn, fig));
     
     % Create PLAY ORIGINAL SIGNAL button and set its callback function
     btnPlayOriginal = uibutton(fig, 'push', 'Text', 'Play Original', ...
@@ -50,9 +51,10 @@ function filterGui()
     fig.UserData.noisy_signal = [];
     fig.UserData.amplifiedAudio = [];
     fig.UserData.fs = [];
+    fig.UserData.filterType = 'LMS';
 end
 
-%% Callback Function
+%% Callback Functions
 
 % Callback function to handle the button press event for recording
 function recordButtonPushed(btn, fig)
@@ -62,18 +64,53 @@ function recordButtonPushed(btn, fig)
     % Call the recorder function to get the recorded audio
     [recorded_audio, fs, rec_sec] = recorder(fig);
 
+    % Store the recorded audio and sampling frequency in the figure's UserData
+    fig.UserData.recorded_audio = recorded_audio;
+    fig.UserData.fs = fs;
+
+    % Clear any previously processed signals
+    fig.UserData.noisy_signal = [];
+    fig.UserData.amplifiedAudio = [];
+    
+    % Display message in GUI
+    lbl.Text = 'Signal recorded. Choose a filter and process the signal.';
+    pause(2);  % Pause to let the message be visible
+    lbl.Text = '';  % Clear the message
+end
+
+% Callback function to handle the dropdown value change event for filter type
+function filterTypeChanged(dd, fig)
+    % Update the filter type in the figure's UserData
+    fig.UserData.filterType = dd.Value;
+end
+
+% Callback function to handle the button press event for processing
+function processButtonPushed(btn, fig)
+    % Access the label handle from the figure's UserData
+    lbl = fig.UserData.lbl;
+
+    % Get the recorded audio and filter type from the figure's UserData
+    recorded_audio = fig.UserData.recorded_audio;
+    fs = fig.UserData.fs;
+    filter_type = fig.UserData.filterType;
+
+    if isempty(recorded_audio)
+        lbl.Text = 'No signal recorded. Please record a signal first.';
+        pause(2);  % Pause to let the error message be visible
+        lbl.Text = '';  % Clear the message
+        return;
+    end
+
     % Display message in GUI
     lbl.Text = 'Processing the recorded signal...';
     pause(1);  % Pause to let the message be visible
     
     % Call the adaptive filter function to get the signals
-    [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = adaptFilter(recorded_audio, fs, fig);
+    [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = adaptFilter(recorded_audio, fs, fig, filter_type);
     
     % Store the signals and sampling frequency in the figure's UserData
-    fig.UserData.recorded_audio = recorded_audio;
     fig.UserData.noisy_signal = noisy_signal;
     fig.UserData.amplifiedAudio = amplifiedAudio;
-    fig.UserData.fs = fs;
 
     % Play and display the signals sequentially
     playSignalHelper(fig, recorded_audio, fs, 'Playing original signal...');

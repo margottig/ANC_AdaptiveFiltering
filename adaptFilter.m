@@ -1,28 +1,5 @@
-%% adaptFilter
-% Function to apply adaptive filtering to a recorded audio signal.
-% Generates a noisy signal, cleans it using LMS adaptive filtering, and amplifies the cleaned signal.
-% Plots the original, noisy, cleaned, and amplified signals.
-%
-% Inputs:
-% - recorded_audio: The recorded audio signal.
-% - fs: The sampling frequency of the recorded audio.
-% - fig: The GUI figure handle to display messages.
-%
-% Outputs:
-% - recorded_audio: The recorded audio signal (unchanged).
-% - noisy_signal: The generated noisy signal.
-% - cleaned_signal: The cleaned signal after filtering.
-% - amplifiedAudio: The amplified cleaned signal.
-% - fs: The sampling frequency of the signals.
-%
-% Usage:
-% [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = adaptFilter(recorded_audio, fs, fig);
-%
-% Authors: Marcelo Argotti Gomez, Juliette Naumann
-% Date: July 4, 2024
-
-%% Adaptive Filter
-function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = adaptFilter(recorded_audio, fs, fig)
+%% Adaptive Filtering
+function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = adaptFilter(recorded_audio, fs, fig, filter_type)
     % Access the label handle from the figure's UserData
     lbl = fig.UserData.lbl;
 
@@ -36,17 +13,28 @@ function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = ad
     noise = noise_power * randn(size(recorded_audio)); 
     noisy_signal = recorded_audio + noise; 
     
-    %% LMS filter parameters 
+    %% Filter parameters
     filter_order = 32; % Order of the adaptive filter 
     mu = 0.01; % Step size for the LMS algorithm 
-    % Initialize the LMS filter 
-    lms_filter = dsp.LMSFilter('Length', filter_order, 'StepSize', mu); 
+    lamda = 0.99; % Forgetting factor for RLS algorithm
     
     %% Clean and amplify the signal
- 
-    %% Apply the LMS filter 
-    [extracted_noise, e] = lms_filter(noise, noisy_signal);
-    cleaned_signal = noisy_signal - extracted_noise; 
+
+    %% Apply the chosen adaptive filter
+    if strcmp(filter_type, 'LMS')
+        % Initialize the LMS filter 
+        lms_filter = dsp.LMSFilter('Length', filter_order, 'StepSize', mu); 
+        % Apply the LMS filter 
+        [extracted_noise, e] = lms_filter(noise, noisy_signal);
+        cleaned_signal = noisy_signal - extracted_noise; 
+    elseif strcmp(filter_type, 'RLS')
+        % Apply the RLS filter
+        [~, e, ~] = getRLS(noisy_signal, recorded_audio, lamda, filter_order);
+        cleaned_signal = noisy_signal - e;
+    else
+        error('Unknown filter type. Choose either ''LMS'' or ''RLS''.');
+    end
+    
     % Plot the original, noisy, and cleaned signals 
     time = (0:length(recorded_audio)-1)/fs; % Time vector for plotting 
     
@@ -60,33 +48,49 @@ function [recorded_audio, noisy_signal, cleaned_signal, amplifiedAudio, fs] = ad
     %% Save the amplified cleaned signal to a file
     audiowrite('FilteredSignal.wav', amplifiedAudio, fs);
     
-    %% Plot
+    %% Plot Time-Domain Signals
     figure; 
-    subplot(4, 1, 1); 
+    subplot(4, 2, 1); 
     plot(time, recorded_audio); 
     title('Original Signal'); 
     xlabel('Time (s)'); 
     ylabel('Amplitude'); 
     grid on; 
 
-    subplot(4, 1, 2); 
+    subplot(4, 2, 3); 
     plot(time, noisy_signal); 
     title('Noisy Signal'); 
     xlabel('Time (s)'); 
     ylabel('Amplitude'); 
     grid on; 
 
-    subplot(4, 1, 3); 
+    subplot(4, 2, 5); 
     plot(time, cleaned_signal); 
-    title('Cleaned Signal using LMS Adaptive Filter'); 
+    title('Cleaned Signal using Adaptive Filter'); 
     xlabel('Time (s)'); 
     ylabel('Amplitude'); 
     grid on; 
 
-    subplot(4, 1, 4); 
+    subplot(4, 2, 7); 
     plot(time_cut, cleaned_signal_cut); 
     title('Cleaned Signal Cutted from first Noise'); 
     xlabel('Time (s)'); 
     ylabel('Amplitude'); 
     grid on; 
+
+    %% Plot Spectrograms
+    signals = {recorded_audio, noisy_signal, cleaned_signal, cleaned_signal_cut};
+    titles = {'Original Signal', 'Noisy Signal', 'Cleaned Signal using Adaptive Filter', 'Cleaned Signal Cutted from first Noise'};
+    hw = hamming(256); % Window
+    np = 128; % Number of overlap samples
+    
+    for i = 1:length(signals)
+        subplot(4, 2, 2*i); % Adjust subplot position for spectrogram
+        [S, F, T] = spectrogram(signals{i}, hw, np, [], fs);
+        imagesc(T, F, 20*log10(abs(S)));
+        set(gca,'YDir','normal');
+        title(titles{i}); 
+        xlabel('Time (s)'); 
+        ylabel('Frequency (Hz)');
+    end
 end

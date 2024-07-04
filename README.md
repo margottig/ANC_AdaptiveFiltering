@@ -3,10 +3,11 @@
 ## Description
 This program offers a graphical user interface (GUI) for recording audio signals and processing them with adaptive filtering. It records an audio signal, adds noise to create a noisy signal, and then cleans the noisy signal using an LMS adaptive filter. The cleaned signal is amplified and played back. Both the original and filtered signals are saved as audio files.
 
-## Authors:	Marcelo Argotti Gomez
-		Juliette Naumann
+## Authors:	
+    Marcelo Argotti Gomez
+    Juliette Naumann
 
-## Date:	July 4, 2024
+   Date:	July 4, 2024
 
 __________________________________________________________________
 
@@ -28,6 +29,9 @@ The GUI contains the following components:
 - **Play Noisy Button**: Plays the noisy version of the recorded audio signal.
 - **Play Amplified Button**: Plays the cleaned and amplified version of the recorded audio signal.
 - **Label**: Displays messages indicating the current operation being performed.
+<div style="text-align: center;">
+    <img src="image-1.png" alt="alt text" width="50%">
+</div>
 
 ### Steps to Use the Program
 1. **Start the GUI**: Run the `filterGui_main.m` script.
@@ -40,7 +44,12 @@ The GUI contains the following components:
      - Adding noise to the recorded signal.
      - Cleaning the noisy signal using LMS adaptive filtering.
      - Amplifying the cleaned signal.
-   - Messages will be displayed in the GUI during each step of the processing.
+    - The recorded signal and its transformations through each processing step will be displayed in time-domain.
+   <div style="text-align: center;">
+    <img src="image-2.png" alt="alt text" width="50%">
+    </div>
+  
+
 4. **Play Processed Signals**:
    - Use the "Play Original" button to hear the original recorded signal.
    - Use the "Play Noisy" button to hear the noisy signal.

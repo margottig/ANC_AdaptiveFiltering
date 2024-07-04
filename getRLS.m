@@ -1,6 +1,6 @@
 % getRLS.m - least mean squares algorithm using dsp.RLSFilter
 %
-% Usage: [e, y, w] = myRLS(d, x, lamda, M)
+% Usage: [e, y, w] = getRLS(d, x, lamda, M)
 %
 % Inputs:
 % d  - the vector of desired signal samples of size Ns, Reference Signal
@@ -14,7 +14,7 @@
 % w - filter parameters
 %
 % ------------------------------------------------------------------------
-function [e, y, w] = myRLS(d, x, lamda, M)
+function [e, y, w] = getRLS(d, x, lamda, M)
 
     Ns = length(d);
     if (Ns <= M)
@@ -37,6 +37,4 @@ function [e, y, w] = myRLS(d, x, lamda, M)
         [y(n), e(n)] = rls(x(n), d(n));
         w(:, n) = rls.Coefficients;
     end
-    
-    end
-    
+end
