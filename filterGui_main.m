@@ -1,6 +1,18 @@
 %% Main file for opening the GUI of the adaptive filter file, which calls the recorder.m
 
-% Main function to create and display the GUI
+% Main function to create and display the GUI for the adaptive filter project.
+% Handles user interactions through buttons to record and play various signals.
+% 
+% Authors: Marcelo Argotti Gomez, Juliette Naumann
+% Date: July 4, 2024
+%
+% Usage:
+% 1. Run the script to open the GUI.
+% 2. Use the "Record" button to start recording a signal.
+% 3. Use the "Filter Method" dropdown to select the filter type (LMS or RLS).
+% 4. Use the "Process" button to process the signal with the selected filter.
+% 5. Use the "Play Original", "Play Noisy", and "Play Filtered" buttons to play the respective signals.
+
 function filterGui()
     % Create the main figure for the GUI
     fig = uifigure('Name', 'Record GUI', 'Position', [100, 100, 500, 300]);
@@ -10,11 +22,18 @@ function filterGui()
                          'Position', [50, 200, 100, 50], ...
                          'ButtonPushedFcn', @(btn, event) recordButtonPushed(btn, fig));
     
-    % Create FILTER TYPE dropdown
+    % Create FILTER METHOD label
+    lblFilterMethod = uilabel(fig, ...
+                              'Text', 'Filter Method', ...
+                              'Position', [50, 160, 100, 22], ...
+                              'HorizontalAlignment', 'center');
+    
+    % Create FILTER METHOD dropdown
     ddFilterType = uidropdown(fig, ...
-                              'Position', [50, 140, 100, 50], ...
+                              'Position', [50, 140, 100, 22], ...
                               'Items', {'LMS', 'RLS'}, ...
                               'Value', 'LMS', ...
+                              'ItemsData', {'LMS', 'RLS'}, ...
                               'ValueChangedFcn', @(dd, event) filterTypeChanged(dd, fig));
     
     % Create PROCESS SIGNAL button and set its callback function
@@ -32,10 +51,10 @@ function filterGui()
                             'Position', [300, 140, 150, 50], ...
                             'ButtonPushedFcn', @(btn, event) playSignal(fig, 'noisy'));
     
-    % Create PLAY AMPLIFIED SIGNAL button and set its callback function
-    btnPlayAmplified = uibutton(fig, 'push', 'Text', 'Play Amplified', ...
-                                'Position', [300, 80, 150, 50], ...
-                                'ButtonPushedFcn', @(btn, event) playSignal(fig, 'amplified'));
+    % Create PLAY FILTERED SIGNAL button and set its callback function
+    btnPlayFiltered = uibutton(fig, 'push', 'Text', 'Play Filtered', ...
+                               'Position', [300, 80, 150, 50], ...
+                               'ButtonPushedFcn', @(btn, event) playSignal(fig, 'amplified'));
     
     % Create a label to display text messages
     lbl = uilabel(fig, 'Text', '', ...
@@ -102,7 +121,11 @@ function processButtonPushed(btn, fig)
     end
 
     % Display message in GUI
-    lbl.Text = 'Processing the recorded signal...';
+    if strcmp(filter_type, 'RLS')
+        lbl.Text = 'RLS is processing. Please be patient...';
+    else
+        lbl.Text = 'Processing the recorded signal...';
+    end
     pause(1);  % Pause to let the message be visible
     
     % Call the adaptive filter function to get the signals
@@ -116,7 +139,11 @@ function processButtonPushed(btn, fig)
     playSignalHelper(fig, recorded_audio, fs, 'Playing original signal...');
     playSignalHelper(fig, noisy_signal, fs, 'Playing noisy signal...');
     playSignalHelper(fig, cleaned_signal, fs, 'Playing cleaned signal...');
-    playSignalHelper(fig, amplifiedAudio, fs, 'Playing CUTTED and AMPLIFIED CLEAN SIGNAL...');
+    if strcmp(filter_type, 'LMS')
+        playSignalHelper(fig, amplifiedAudio, fs, 'Playing CUTTED and AMPLIFIED CLEAN SIGNAL...');
+    else
+        playSignalHelper(fig, amplifiedAudio, fs, 'Playing CUTTED CLEAN SIGNAL...');
+    end
 end
 
 % Helper function to play a signal and display a message in the GUI
@@ -125,10 +152,11 @@ function playSignalHelper(fig, signal, fs, message)
     lbl = fig.UserData.lbl;
     
     if ~isempty(signal)
-        % Play and display the signal with the given message
+        % Display message 1 second before playing the sound
         lbl.Text = message;
+        pause(1);  % Pause to let the message be visible
         sound(signal, fs);
-        pause(length(signal)/fs + 0.2);  % Pause to let the message be visible during playback
+        pause(length(signal)/fs + 0.2);  % Pause to let the sound play
         lbl.Text = '';  % Clear the message
     else
         % Display an error message if the signal is not available
@@ -154,6 +182,9 @@ function playSignal(fig, signalType)
         case 'amplified'
             signal = fig.UserData.amplifiedAudio;
             message = 'Playing CUTTED and AMPLIFIED CLEAN SIGNAL...';
+            if strcmp(fig.UserData.filterType, 'RLS')
+                message = 'Playing CUTTED CLEAN SIGNAL...';
+            end
         otherwise
             signal = [];
             message = 'Invalid signal type.';

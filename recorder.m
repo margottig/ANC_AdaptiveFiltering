@@ -2,6 +2,9 @@
 % Function to record an audio signal for a specified duration.
 % Stores the recorded audio and sampling frequency for further processing.
 %
+% Authors: Marcelo Argotti Gomez, Juliette Naumann
+% Date: July 4, 2024
+%
 % Inputs:
 % - fig: The GUI figure handle to display messages.
 %
@@ -12,9 +15,8 @@
 %
 % Usage:
 % [recorded_audio, fs, rec_sec] = recorder(fig);
-%
-% Authors: Marcelo Argotti Gomez, Juliette Naumann
-% Date: July 4, 2024
+
+% ------------------------------------------------------------------------
 
 
 %% Record Signal
